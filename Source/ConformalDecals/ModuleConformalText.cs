@@ -90,43 +90,9 @@ namespace ConformalDecals {
         private MaterialColorProperty   _outlineColorProperty;
         private MaterialFloatProperty   _outlineWidthProperty;
 
-        private DecalText     _currentText;
+        private DecalText _currentText;
 
-        public override void OnLoad(ConfigNode node) {
-            base.OnLoad(node);
-
-            string textRaw = "";
-            if (ParseUtil.ParseStringIndirect(ref textRaw, node, "text")) {
-                text = WebUtility.UrlDecode(textRaw);
-            }
-
-            string fontName = "";
-            if (ParseUtil.ParseStringIndirect(ref fontName, node, "fontName")) {
-                font = DecalConfig.GetFont(fontName);
-            }
-            else if (font == null) font = DecalConfig.GetFont("Calibri SDF");
-
-            int styleInt = 0;
-            if (ParseUtil.ParseIntIndirect(ref styleInt, node, "style")) {
-                style = (FontStyles) styleInt;
-            }
-
-            ParseUtil.ParseColor32Indirect(ref fillColor, node, "fillColor");
-            ParseUtil.ParseColor32Indirect(ref outlineColor, node, "outlineColor");
-
-            if (HighLogic.LoadedSceneIsGame) {
-                // For some reason, rendering doesnt work right on the first frame a scene is loaded
-                // So delay any rendering until the next frame when called in OnLoad
-                // This is probably a problem with Unity, not KSP
-                StartCoroutine(UpdateTextLate());
-            }
-            else {
-                UpdateTextures();
-                UpdateMaterials();
-                UpdateScale();
-                UpdateTargets();
-            }
-        }
+        // EVENTS
 
         public override void OnSave(ConfigNode node) {
             node.AddValue("text", WebUtility.UrlEncode(text));
@@ -254,18 +220,69 @@ namespace ConformalDecals {
             base.OnDetach();
         }
 
+        // FUNCTIONS
+
+        protected override void LoadDecal(ConfigNode node) {
+            base.LoadDecal(node);
+
+            string textRaw = "";
+            if (ParseUtil.ParseStringIndirect(ref textRaw, node, "text")) {
+                text = WebUtility.UrlDecode(textRaw);
+            }
+
+            string fontName = "";
+            if (ParseUtil.ParseStringIndirect(ref fontName, node, "fontName")) {
+                font = DecalConfig.GetFont(fontName);
+            }
+            else if (font == null) font = DecalConfig.GetFont("Calibri SDF");
+
+            int styleInt = 0;
+            if (ParseUtil.ParseIntIndirect(ref styleInt, node, "style")) {
+                style = (FontStyles) styleInt;
+            }
+
+            ParseUtil.ParseColor32Indirect(ref fillColor, node, "fillColor");
+            ParseUtil.ParseColor32Indirect(ref outlineColor, node, "outlineColor");
+        }
+
+        protected override void SetupDecal() {
+            if (HighLogic.LoadedSceneIsEditor) {
+                // Update tweakables in editor mode
+                UpdateTweakables();
+            }
+
+            if (HighLogic.LoadedSceneIsGame) {
+                // For some reason text rendering fails on the first frame of a scene, so this is my workaround
+                StartCoroutine(UpdateTextLate());
+            }
+            else {
+                scale = defaultScale;
+                depth = defaultDepth;
+                opacity = defaultOpacity;
+                cutoff = defaultCutoff;
+                wear = defaultWear;
+
+                UpdateTextures();
+                UpdateMaterials();
+                UpdateScale();
+
+                // QUEUE PART FOR ICON FIXING IN VAB
+                DecalIconFixer.QueuePart(part.name);
+            }
+        }
+
         protected void UpdateText() {
             UpdateTextures();
             UpdateMaterials();
             UpdateScale();
             UpdateTargets();
         }
-        
+
         private IEnumerator UpdateTextLate() {
             yield return null;
             UpdateText();
         }
-        
+
         protected override void UpdateTextures() {
             // Render text
             var newText = new DecalText(text, font, style, vertical, lineSpacing, charSpacing);

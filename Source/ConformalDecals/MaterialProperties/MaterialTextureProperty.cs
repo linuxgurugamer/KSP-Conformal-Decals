@@ -44,7 +44,7 @@ namespace ConformalDecals.MaterialProperties {
         public float AspectRatio {
             get {
                 if (_texture == null) return 1;
-                if (_textureUrl?.Contains("Squad/Flags") == true) return 0.625f;
+                if (_textureUrl?.Contains("Squad/Flags") == true) return 0.625f; // squad flags are slightly stretched, so unstretch them
                 return MaskedHeight / (float) MaskedWidth;
             }
         }

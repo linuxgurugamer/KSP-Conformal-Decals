@@ -105,6 +105,28 @@ namespace ConformalDecals.MaterialProperties {
             _materialProperties ??= new Dictionary<string, MaterialProperty>();
         }
 
+        public void Load(ConfigNode node) {
+            // add keyword nodes
+            foreach (var keywordNode in node.GetNodes("KEYWORD")) {
+                ParseProperty<MaterialKeywordProperty>(keywordNode);
+            }
+
+            // add texture nodes
+            foreach (var textureNode in node.GetNodes("TEXTURE")) {
+                ParseProperty<MaterialTextureProperty>(textureNode);
+            }
+
+            // add float nodes
+            foreach (var floatNode in node.GetNodes("FLOAT")) {
+                ParseProperty<MaterialTextureProperty>(floatNode);
+            }
+
+            // add color nodes
+            foreach (var colorNode in node.GetNodes("COLOR")) {
+                ParseProperty<MaterialColorProperty>(colorNode);
+            }
+        }
+
         public void OnDestroy() {
             if (_decalMaterial != null) Destroy(_decalMaterial);
             if (_previewMaterial != null) Destroy(_previewMaterial);
