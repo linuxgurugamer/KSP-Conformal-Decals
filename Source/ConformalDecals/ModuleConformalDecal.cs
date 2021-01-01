@@ -153,6 +153,18 @@ namespace ConformalDecals {
         }
 
         /// <inheritdoc />
+        public override void OnSave(ConfigNode node) {
+            // SAVE TARGETS
+            if (HighLogic.LoadedSceneIsFlight) {
+                foreach (var partTarget in _targets.Values) {
+                    if (partTarget.enabled) node.AddNode(partTarget.Save());
+                }
+            }
+
+            base.OnSave(node);
+        }
+
+        /// <inheritdoc />
         public override void OnIconCreate() {
             UpdateTextures();
             UpdateProjection();
@@ -430,6 +442,20 @@ namespace ConformalDecals {
             }
             else if (tileIndex >= 0) {
                 materialProperties.UpdateTile(tileIndex, tileSize);
+            }
+            
+            // PARSE TARGETS
+            if (HighLogic.LoadedSceneIsFlight) {
+                foreach (var partTargetNode in node.GetNodes(ProjectionPartTarget.NodeName)) {
+                    try {
+                        var partTarget = new ProjectionPartTarget(partTargetNode, part.vessel, useBaseNormal);
+                        _targets.Add(partTarget.part, partTarget);
+                    }
+                    catch (Exception e) {
+                        this.LogWarning($"Encountered error while parsing part node: {e}");
+                    }
+
+                }
             }
         }
 

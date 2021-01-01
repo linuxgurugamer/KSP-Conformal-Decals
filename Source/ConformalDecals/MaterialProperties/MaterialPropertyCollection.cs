@@ -208,13 +208,14 @@ namespace ConformalDecals.MaterialProperties {
         public T ParseProperty<T>(ConfigNode node) where T : MaterialProperty {
             string propertyName = "";
             if (!ParseUtil.ParseStringIndirect(ref propertyName, node, "name")) throw new ArgumentException("node has no name");
+            Logging.Log($"Parsing material property {propertyName}");
 
             if (ParseUtil.ParseBool(node, "remove", true)) RemoveProperty(propertyName);
 
             var newProperty = AddOrGetProperty<T>(propertyName);
             newProperty.ParseNode(node);
 
-            if (newProperty is MaterialTextureProperty textureProperty && textureProperty.isMain) {
+            if (newProperty is MaterialTextureProperty {isMain: true} textureProperty) {
                 _mainTexture = textureProperty;
             }
 
