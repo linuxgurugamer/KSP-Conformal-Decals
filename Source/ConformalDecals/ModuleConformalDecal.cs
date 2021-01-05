@@ -645,8 +645,6 @@ namespace ConformalDecals {
         protected void UpdatePartTarget(Part targetPart, Bounds projectionBounds) {
             if (targetPart.GetComponent<ModuleConformalDecal>() != null) return; // skip other decals
 
-            this.Log($"Updating projection onto part {targetPart.name}");
-
             if (!_targets.TryGetValue(targetPart, out var target)) {
                 var rendererList = targetPart.FindModelComponents<MeshRenderer>();
 
@@ -658,8 +656,6 @@ namespace ConformalDecals {
                     return;
                 }
             }
-
-            this.Log($"valid target: {targetPart.name}");
 
             target.Project(_orthoMatrix, decalProjectorTransform, projectionBounds);
         }
