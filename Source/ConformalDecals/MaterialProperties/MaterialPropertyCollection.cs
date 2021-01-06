@@ -280,20 +280,6 @@ namespace ConformalDecals.MaterialProperties {
             UpdateTile(tile);
         }
 
-        public void SetOpacity(float opacity) {
-            DecalMaterial.SetFloat(DecalPropertyIDs._DecalOpacity, opacity);
-            PreviewMaterial.SetFloat(DecalPropertyIDs._DecalOpacity, opacity);
-        }
-
-        public void SetCutoff(float cutoff) {
-            DecalMaterial.SetFloat(DecalPropertyIDs._Cutoff, cutoff);
-            PreviewMaterial.SetFloat(DecalPropertyIDs._Cutoff, cutoff);
-        }
-
-        public void SetWear(float wear) {
-            DecalMaterial.SetFloat(DecalPropertyIDs._EdgeWearStrength, wear);
-        }
-
         public void UpdateMaterials() {
             foreach (var material in Materials) {
                 UpdateMaterial(material);

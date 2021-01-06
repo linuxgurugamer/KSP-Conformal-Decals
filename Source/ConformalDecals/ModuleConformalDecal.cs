@@ -71,14 +71,17 @@ namespace ConformalDecals {
         [KSPField(guiName = "#LOC_ConformalDecals_gui-opacity", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
          UI_FloatRange()]
         public float opacity = 1.0f;
+        private MaterialFloatProperty _opacityProperty;
 
         [KSPField(guiName = "#LOC_ConformalDecals_gui-cutoff", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "P0"),
          UI_FloatRange()]
         public float cutoff = 0.5f;
+        private MaterialFloatProperty _cutoffProperty;
 
         [KSPField(guiName = "#LOC_ConformalDecals_gui-wear", guiActive = false, guiActiveEditor = true, isPersistant = true, guiFormat = "F0"),
          UI_FloatRange()]
         public float wear = 100;
+        private MaterialFloatProperty _wearProperty;
 
         [KSPField(guiName = "#LOC_ConformalDecals_gui-multiproject", guiActive = false, guiActiveEditor = true, isPersistant = true),
          UI_Toggle()]
@@ -131,6 +134,10 @@ namespace ConformalDecals {
             else {
                 materialProperties = ScriptableObject.Instantiate(materialProperties);
             }
+
+            _opacityProperty = materialProperties.AddOrGetProperty<MaterialFloatProperty>("_DecalOpacity");
+            _cutoffProperty = materialProperties.AddOrGetProperty<MaterialFloatProperty>("_Cutoff");
+            _wearProperty = materialProperties.AddOrGetProperty<MaterialFloatProperty>("_EdgeWearStrength");
         }
 
         /// <inheritdoc />
@@ -227,30 +234,20 @@ namespace ConformalDecals {
             // scale or depth values have been changed, so update scale
             // and update projection matrices if attached
             UpdateProjection();
-            UpdateTargets();
 
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalDecal>();
                 decal.UpdateProjection();
-                decal.UpdateTargets();
             }
         }
 
         /// Called when the decal's material is modified through a tweakable
         protected void OnMaterialTweakEvent(BaseField field, object obj) {
-            materialProperties.SetOpacity(opacity);
-            materialProperties.SetCutoff(cutoff);
-            if (useBaseNormal) {
-                materialProperties.SetWear(wear);
-            }
+            UpdateMaterials();
 
             foreach (var counterpart in part.symmetryCounterparts) {
                 var decal = counterpart.GetComponent<ModuleConformalDecal>();
-                decal.materialProperties.SetOpacity(opacity);
-                decal.materialProperties.SetCutoff(cutoff);
-                if (useBaseNormal) {
-                    decal.materialProperties.SetWear(wear);
-                }
+                decal.UpdateMaterials();
             }
         }
 
@@ -258,7 +255,7 @@ namespace ConformalDecals {
         protected void OnVariantApplied(Part eventPart, PartVariant variant) {
             if (_isAttached && eventPart != null && (!projectMultiple || eventPart == part.parent)) {
                 _targets.Remove(eventPart);
-                UpdateTargets();
+                UpdateProjection();
             }
         }
 
@@ -282,7 +279,6 @@ namespace ConformalDecals {
         protected void OnPartTransformed(Part eventPart) {
             if (this.part == eventPart) {
                 UpdateProjection();
-                UpdateTargets();
             }
             else if (_isAttached && projectMultiple) {
                 UpdatePartTarget(eventPart, _boundsRenderer.bounds);
@@ -354,7 +350,6 @@ namespace ConformalDecals {
 
             UpdateMaterials();
             UpdateProjection();
-            UpdateTargets();
         }
 
         /// Called when decal is detached from its parent part
@@ -542,7 +537,6 @@ namespace ConformalDecals {
             UpdateTextures();
             UpdateMaterials();
             UpdateProjection();
-            UpdateTargets();
         }
 
         /// Update decal textures
@@ -550,12 +544,11 @@ namespace ConformalDecals {
 
         /// Update decal materials
         protected virtual void UpdateMaterials() {
+            _opacityProperty.value = opacity;
+            _cutoffProperty.value = cutoff;
+            _wearProperty.value = wear;
+            
             materialProperties.UpdateMaterials();
-            materialProperties.SetOpacity(opacity);
-            materialProperties.SetCutoff(cutoff);
-            if (useBaseNormal) {
-                materialProperties.SetWear(wear);
-            }
 
             _decalMaterial = materialProperties.DecalMaterial;
             _previewMaterial = materialProperties.PreviewMaterial;
@@ -606,6 +599,26 @@ namespace ConformalDecals {
                 _orthoMatrix[1, 3] = 0.5f;
 
                 decalProjectorTransform.localScale = new Vector3(size.x, size.y, depth);
+                
+                var projectionBounds = _boundsRenderer.bounds;
+
+                // disable all targets
+                foreach (var target in _targets.Values) {
+                    target.enabled = false;
+                }
+
+                // collect list of potential targets
+                IEnumerable<Part> targetParts;
+                if (projectMultiple) {
+                    targetParts = HighLogic.LoadedSceneIsFlight ? part.vessel.parts : EditorLogic.fetch.ship.parts;
+                }
+                else {
+                    targetParts = new[] {part.parent};
+                }
+
+                foreach (var targetPart in targetParts) {
+                    UpdatePartTarget(targetPart, projectionBounds);
+                }
             }
             else {
                 // rescale preview model
@@ -615,30 +628,6 @@ namespace ConformalDecals {
                 if (updateBackScale) {
                     backMaterial.SetTextureScale(PropertyIDs._MainTex, new Vector2(size.x * backTextureBaseScale.x, size.y * backTextureBaseScale.y));
                 }
-            }
-        }
-
-        /// Called when updating decal targets
-        protected void UpdateTargets() {
-            if (!_isAttached) return;
-            var projectionBounds = _boundsRenderer.bounds;
-
-            // disable all targets
-            foreach (var target in _targets.Values) {
-                target.enabled = false;
-            }
-
-            // collect list of potential targets
-            IEnumerable<Part> targetParts;
-            if (projectMultiple) {
-                targetParts = HighLogic.LoadedSceneIsFlight ? part.vessel.parts : EditorLogic.fetch.ship.parts;
-            }
-            else {
-                targetParts = new[] {part.parent};
-            }
-
-            foreach (var targetPart in targetParts) {
-                UpdatePartTarget(targetPart, projectionBounds);
             }
         }
 
