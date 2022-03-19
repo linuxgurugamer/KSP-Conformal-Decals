@@ -29,8 +29,7 @@ namespace ConformalDecals {
         public void SetText() {
             if (_textEntryController == null) {
                 _textEntryController = TextEntryController.Create(text, font, style, vertical, lineSpacing, charSpacing, lineSpacingRange, charSpacingRange, OnTextUpdate);
-            }
-            else {
+            } else {
                 _textEntryController.Close();
             }
         }
@@ -47,8 +46,7 @@ namespace ConformalDecals {
         public void SetFillColor() {
             if (_fillColorPickerController == null) {
                 _fillColorPickerController = ColorPickerController.Create(fillColor, OnFillColorUpdate);
-            }
-            else {
+            } else {
                 _fillColorPickerController.Close();
             }
         }
@@ -70,8 +68,7 @@ namespace ConformalDecals {
         public void SetOutlineColor() {
             if (_outlineColorPickerController == null) {
                 _outlineColorPickerController = ColorPickerController.Create(outlineColor, OnOutlineColorUpdate);
-            }
-            else {
+            } else {
                 _outlineColorPickerController.Close();
             }
         }
@@ -234,8 +231,7 @@ namespace ConformalDecals {
             string fontName = "";
             if (ParseUtil.ParseStringIndirect(ref fontName, node, "fontName")) {
                 font = DecalConfig.GetFont(fontName);
-            }
-            else if (font == null) font = DecalConfig.GetFont("Calibri SDF");
+            } else if (font == null) font = DecalConfig.GetFont("Calibri SDF");
 
             int styleInt = 0;
             if (ParseUtil.ParseIntIndirect(ref styleInt, node, "style")) {
@@ -247,28 +243,11 @@ namespace ConformalDecals {
         }
 
         protected override void SetupDecal() {
-            if (HighLogic.LoadedSceneIsEditor) {
-                // Update tweakables in editor mode
-                UpdateTweakables();
-            }
-
             if (HighLogic.LoadedSceneIsGame) {
                 // For some reason text rendering fails on the first frame of a scene, so this is my workaround
                 StartCoroutine(UpdateTextLate());
-            }
-            else {
-                scale = defaultScale;
-                depth = defaultDepth;
-                opacity = defaultOpacity;
-                cutoff = defaultCutoff;
-                wear = defaultWear;
-
-                UpdateTextures();
-                UpdateMaterials();
-                UpdateProjection();
-
-                // QUEUE PART FOR ICON FIXING IN VAB
-                DecalIconFixer.QueuePart(part.name);
+            } else {
+                base.SetupDecal();
             }
         }
 
@@ -281,7 +260,7 @@ namespace ConformalDecals {
             // Render text
             var newText = new DecalText(text, font, style, vertical, lineSpacing, charSpacing);
             var output = TextRenderer.UpdateText(_currentText, newText);
-            
+
             // update the _currentText state variable
             // this is the ONLY place this variable should be set! otherwise the current state is lost
             _currentText = newText;

@@ -441,14 +441,12 @@ namespace ConformalDecals {
             }
         }
 
-            // find all valid renderers
-            var renderers = part.parent.FindModelComponents<MeshRenderer>();
-            foreach (var renderer in renderers) {
-                // skip disabled renderers
-                if (renderer.gameObject.activeInHierarchy == false) continue;
-                
-                // skip blacklisted shaders
-                if (DecalConfig.IsBlacklisted(renderer.material.shader)) continue;
+        /// Setup decal by calling update functions relevent for the current situation
+        protected virtual void SetupDecal() {
+            if (HighLogic.LoadedSceneIsEditor) {
+                // Update tweakables in editor mode
+                UpdateTweakables();
+            }
 
             if (HighLogic.LoadedSceneIsGame) {
                 UpdateAll();

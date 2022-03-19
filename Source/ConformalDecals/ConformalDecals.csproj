@@ -1,4 +1,4 @@
-<?xml version="1.0" ?><Project Sdk="Microsoft.NET.Sdk">
+<?xml version="1.0" encoding="utf-8"?><Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
         <LangVersion>8</LangVersion>
@@ -36,22 +36,22 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="dlls\**"/>
+        <Compile Remove="dlls\**" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Remove="dlls\**"/>
+        <EmbeddedResource Remove="dlls\**" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="dlls\**"/>
+        <None Remove="dlls\**" />
     </ItemGroup>
 
     <ItemGroup>
       <None Include="..\.editorconfig" />
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Exec Command="/bin/cp -v '$(OutDir)ConformalDecals.dll' '$(SolutionDir)../GameData/ConformalDecals/Plugins/ConformalDecals.dll'" IgnoreExitCode="true"/>
+        <Exec Command="/bin/cp -v '$(OutDir)ConformalDecals.dll' '$(SolutionDir)../GameData/ConformalDecals/Plugins/ConformalDecals.dll'" IgnoreExitCode="true" />
         <!--Fuck you MSBuild stop trying to run CMD.exe on macOS-->
     </Target>
 

@@ -27,6 +27,7 @@ namespace ConformalDecals.MaterialProperties {
         public string TextureUrl {
             get => _textureUrl;
             set {
+                if (_textureUrl == value) return; // URL hasnt changed
                 _texture = LoadTexture(value, isNormal);
                 _textureUrl = value;
             }
