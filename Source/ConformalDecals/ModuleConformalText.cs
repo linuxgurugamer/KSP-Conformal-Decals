@@ -256,20 +256,20 @@ namespace ConformalDecals {
             UpdateAll();
         }
 
-        protected override void UpdateTextures() {
+        protected override void UpdateMaterials() {
             // Render text
             var newText = new DecalText(text, font, style, vertical, lineSpacing, charSpacing);
-            var output = TextRenderer.UpdateText(_currentText, newText);
+            if (newText != _currentText) {
+                var output = TextRenderer.UpdateText(_currentText, newText);
 
-            // update the _currentText state variable
-            // this is the ONLY place this variable should be set! otherwise the current state is lost
-            _currentText = newText;
+                // update the _currentText state variable
+                // this is the ONLY place this variable should be set! otherwise the current state is lost
+                _currentText = newText;
 
-            _decalTextureProperty.Texture = output.Texture;
-            _decalTextureProperty.SetTile(output.Window);
-        }
-
-        protected override void UpdateMaterials() {
+                _decalTextureProperty.Texture = output.Texture;
+                _decalTextureProperty.SetTile(output.Window);
+            }
+            
             _fillEnabledProperty.value = fillEnabled;
             _fillColorProperty.color = fillColor;
 

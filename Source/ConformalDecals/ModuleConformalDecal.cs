@@ -134,8 +134,7 @@ namespace ConformalDecals {
 
             if (materialProperties == null) {
                 materialProperties = ScriptableObject.CreateInstance<MaterialPropertyCollection>();
-            }
-            else {
+            } else {
                 materialProperties = ScriptableObject.Instantiate(materialProperties);
             }
 
@@ -149,24 +148,21 @@ namespace ConformalDecals {
             // Load
             try {
                 LoadDecal(node);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 this.LogException("Error loading decal", e);
             }
 
             // Setup
             try {
                 SetupDecal();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 this.LogException("Error setting up decal", e);
             }
         }
 
         /// <inheritdoc />
         public override void OnIconCreate() {
-            UpdateTextures();
-            UpdateProjection();
+            UpdateAll();
         }
 
         /// <inheritdoc />
@@ -188,13 +184,11 @@ namespace ConformalDecals {
         /// This is mostly used to make sure all B9 variants are already in place for the rest of the vessel
         public override void OnStartFinished(StartState state) {
             // handle game events
-            UpdateTextures();
             if (HighLogic.LoadedSceneIsGame) {
                 // set initial attachment state
                 if (part.parent == null) {
                     OnDetach();
-                }
-                else {
+                } else {
                     OnAttach();
                 }
             }
@@ -285,8 +279,7 @@ namespace ConformalDecals {
             if (part == eventPart || (firstcall && part.symmetryCounterparts.Contains(eventPart))) {
                 // if this is the top-level call (original event part is a decal) then update symmetry counterparts, otherwise just update this
                 UpdateProjection();
-            }
-            else if (_isAttached) {
+            } else if (_isAttached) {
                 UpdatePartTarget(eventPart, _boundsRenderer.bounds);
                 // recursively call for child parts
                 foreach (var child in eventPart.children) {
@@ -300,8 +293,7 @@ namespace ConformalDecals {
             if (part == eventPart || (firstcall && part.symmetryCounterparts.Contains(eventPart))) {
                 // if this is the top-level call (original event part is a decal) then update symmetry counterparts, otherwise just update this
                 OnAttach();
-            }
-            else {
+            } else {
                 UpdatePartTarget(eventPart, _boundsRenderer.bounds);
                 // recursively call for child parts
                 foreach (var child in eventPart.children) {
@@ -315,8 +307,7 @@ namespace ConformalDecals {
             if (part == eventPart || (firstcall && part.symmetryCounterparts.Contains(eventPart))) {
                 // if this is the top-level call (original event part is a decal) then update symmetry counterparts, otherwise just update this
                 OnDetach();
-            }
-            else if (_isAttached) {
+            } else if (_isAttached) {
                 _targets.Remove(eventPart);
                 // recursively call for child parts
                 foreach (var child in eventPart.children) {
@@ -330,8 +321,7 @@ namespace ConformalDecals {
             if (willDie == part.parent && willDie != null) {
                 this.Log("Parent part about to be destroyed! Killing decal part.");
                 part.Die();
-            }
-            else if (_isAttached && projectMultiple) {
+            } else if (_isAttached && projectMultiple) {
                 _targets.Remove(willDie);
             }
         }
@@ -406,14 +396,12 @@ namespace ConformalDecals {
                     if (backRenderer == null) {
                         this.LogError($"Specified decalBack transform {decalBack} has no renderer attached! Setting updateBackScale to false.");
                         updateBackScale = false;
-                    }
-                    else {
+                    } else {
                         backMaterial = backRenderer.material;
                         if (backMaterial == null) {
                             this.LogError($"Specified decalBack transform {decalBack} has a renderer but no material! Setting updateBackScale to false.");
                             updateBackScale = false;
-                        }
-                        else {
+                        } else {
                             if (backTextureBaseScale == default) backTextureBaseScale = backMaterial.GetTextureScale(PropertyIDs._MainTex);
                         }
                     }
@@ -435,8 +423,7 @@ namespace ConformalDecals {
 
             if (tileRect.x >= 0) {
                 materialProperties.UpdateTile(tileRect);
-            }
-            else if (tileIndex >= 0) {
+            } else if (tileIndex >= 0) {
                 materialProperties.UpdateTile(tileIndex, tileSize);
             }
         }
@@ -450,8 +437,7 @@ namespace ConformalDecals {
 
             if (HighLogic.LoadedSceneIsGame) {
                 UpdateAll();
-            }
-            else {
+            } else {
                 scale = defaultScale;
                 depth = defaultDepth;
                 opacity = defaultOpacity;
@@ -544,15 +530,11 @@ namespace ConformalDecals {
             multiprojectEditor.onFieldChanged = OnProjectionTweakEvent;
         }
 
-        /// Updates textures, materials, scale and targets
+        /// Updates materials, scale and targets
         protected virtual void UpdateAll() {
-            UpdateTextures();
             UpdateMaterials();
             UpdateProjection();
         }
-
-        /// Update decal textures
-        protected virtual void UpdateTextures() { }
 
         /// Update decal materials
         protected virtual void UpdateMaterials() {
@@ -623,16 +605,14 @@ namespace ConformalDecals {
                 IEnumerable<Part> targetParts;
                 if (projectMultiple) {
                     targetParts = HighLogic.LoadedSceneIsFlight ? part.vessel.parts : EditorLogic.fetch.ship.parts;
-                }
-                else {
+                } else {
                     targetParts = new[] {part.parent};
                 }
 
                 foreach (var targetPart in targetParts) {
                     UpdatePartTarget(targetPart, projectionBounds);
                 }
-            }
-            else {
+            } else {
                 // rescale preview model
                 decalModelTransform.localScale = new Vector3(size.x, size.y, (size.x + size.y) / 2);
 
@@ -652,8 +632,7 @@ namespace ConformalDecals {
                 if (rendererList.Any(o => projectionBounds.Intersects(o.bounds))) {
                     target = new ProjectionPartTarget(targetPart, useBaseNormal);
                     _targets.Add(targetPart, target);
-                }
-                else {
+                } else {
                     return;
                 }
             }
